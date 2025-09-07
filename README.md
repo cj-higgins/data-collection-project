@@ -10,10 +10,10 @@ The flow is:
    Pulls recent SEC filings for a set of companies. Produces `manifest_ab.csv` and `manifest_two.csv`.
 
 2. **Assemble Master Sheet** (`assemble_master.py`):  
-   Merges manifests into `tasks_master_finalized.csv` with 120 tasks (40 A, 40 B, 10 C-YoY, 10 C-Peer).  
+   Merges manifests into `tasks_master.csv` with 120 tasks (40 A, 40 B, 10 C-YoY, 10 C-Peer).  
    Fields include company info, filing metadata, two doc slots, and placeholders for PDF filenames, checksums, and links.
 
-3. **Finalize PDFs Offline** (`finalize_pdfs_offline_final.py`):  
+3. **Finalize PDFs Offline** (`finalize_pdfs_offline.py`):  
    Renders the HTML filings to local PDFs, fills `PDF_filename_*` and `PDF_checksum_*` in a new CSV (`*_finalized_offline.csv`).
 
 4. **Google Drive Apps Script** (`PDF_links.txt`):  
@@ -30,13 +30,13 @@ companies_80.csv
             │
             ▼
       assemble_master.py
-         └── tasks_master_finalized.csv
+         └── tasks_master.csv
                     │
                     ▼
-   finalize_pdfs_offline_final.py
+   finalize_pdfs_offline.py
      ├── html_cache/*.html
      ├── SEC PDFs/*.pdf
-     └── tasks_master_finalized_finalized_offline.csv
+     └── tasks_master_finalized_offline.csv
                     │
         (upload PDFs to Drive; keep filenames)
                     │
@@ -67,22 +67,22 @@ Outputs: `manifest_ab.csv`, `manifest_two.csv`.
 python assemble_master.py \
   --ab manifest_ab.csv \
   --two manifest_two.csv \
-  --out tasks_master_finalized.csv \
+  --out tasks_master.csv \
   --a-count 40 --b-count 40 --c-yoy-count 10 --c-peer-count 10
 ```
 
-Outputs: `tasks_master_finalized.csv`.
+Outputs: `tasks_master.csv`.
 
 ### 3. Finalize PDFs Offline
 
 ```bash
-python finalize_pdfs_offline_final.py tasks_master_finalized.csv \
+python finalize_pdfs_offline.py tasks_master.csv \
   --outdir "C:/Users/you/OneDrive/Documents/SEC PDFs" \
   --ua "TrialDataCollection/1.0 (your_email@example.com)" \
   --only-missing --overwrite --debug
 ```
 
-Outputs: PDFs in `SEC PDFs/` and `tasks_master_finalized_finalized_offline.csv`.
+Outputs: PDFs in `SEC PDFs/` and `tasks_master_finalized_offline.csv`.
 
 > **Note**: Replace `your_email@example.com` with your real contact email.  
 > The SEC requires a valid User-Agent with contact information when programmatically accessing filings.
