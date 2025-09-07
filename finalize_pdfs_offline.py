@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-finalize_pdfs_offline_final.py
+finalize_pdfs_offline.py
 Offline (local) HTML→PDF renderer for SEC filings previously downloaded as HTML.
 
 Fixes:
@@ -9,7 +9,7 @@ Fixes:
 - Keeps NaN/blank URL cleaning, polite delays, retries, checksum tracking.
 
 Example run (Windows with forward slashes):
-  python finalize_pdfs_offline_final.py tasks_master_finalized.csv \
+  python finalize_pdfs_offline.py tasks_master_finalized.csv \
     --outdir "C:/Users/you/OneDrive/Documents/SEC PDFs" \
     --only-missing --overwrite --debug \
     --ua "TrialDataCollection/1.0 (you@example.com)"
