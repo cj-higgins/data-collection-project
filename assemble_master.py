@@ -6,7 +6,7 @@ Reads:
   - manifest_two.csv  (up to two 10-Ks per company, >= 2023-10-01)
 
 Writes:
-  - tasks_master_finalized.csv  (120 rows by default: A=40, B=40, C(YoY)=10, C(Peer)=10)
+  - tasks_master.csv  (120 rows by default: A=40, B=40, C(YoY)=10, C(Peer)=10)
 
 Category labels:
   A, B, C (YoY), C (Peer)     # note: C subtype is inside Category cell
@@ -22,7 +22,7 @@ Usage (defaults, no args needed):
   python assemble_master.py
 
 Optional overrides:
-  python assemble_master.py --ab manifest_ab.csv --two manifest_two.csv --out tasks_master_finalized.csv           --a-count 40 --b-count 40 --c-yoy-count 10 --c-peer-count 10
+  python assemble_master.py --ab manifest_ab.csv --two manifest_two.csv --out tasks_master.csv           --a-count 40 --b-count 40 --c-yoy-count 10 --c-peer-count 10
 
 Pairing rules:
   - YoY: pick companies in manifest_two with two DISTINCT years; choose the two most recent years.
@@ -138,7 +138,7 @@ def pick_peers(ab_df: pd.DataFrame, k: int, used_companies: set[tuple]) -> list[
 def assemble(
     ab_path: str = "manifest_ab.csv",
     two_path: str = "manifest_two.csv",
-    out_path: str = "tasks_master_finalized.csv",
+    out_path: str = "tasks_master.csv",
     a_count: int = 40,
     b_count: int = 40,
     c_yoy_count: int = 10,
@@ -176,7 +176,7 @@ def main():
     ap = argparse.ArgumentParser(description="Assemble the 120-row master tasks CSV from manifest files.")
     ap.add_argument("--ab", default="manifest_ab.csv")
     ap.add_argument("--two", default="manifest_two.csv")
-    ap.add_argument("--out", default="tasks_master_finalized.csv")
+    ap.add_argument("--out", default="tasks_master.csv")
     ap.add_argument("--a-count", type=int, default=40)
     ap.add_argument("--b-count", type=int, default=40)
     ap.add_argument("--c-yoy-count", type=int, default=10)
