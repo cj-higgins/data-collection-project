@@ -6,7 +6,7 @@ This repository provides a full pipeline for transforming recent SEC filings int
 
 The flow is:
 
-1. **Build Manifests** (`build_manifest_dual_public.py`):  
+1. **Build Manifests** (`build_manifest_dual.py`):  
    Pulls recent SEC filings for a set of companies. Produces `manifest_ab.csv` and `manifest_two.csv`.
 
 2. **Assemble Master Sheet** (`assemble_master.py`):  
@@ -24,7 +24,7 @@ The flow is:
 companies_80.csv
       │
       ▼
- build_manifest_dual_public.py
+ build_manifest_dual.py
    ├── manifest_ab.csv
    └── manifest_two.csv
             │
@@ -52,7 +52,7 @@ companies_80.csv
 ### 1. Build Manifests
 
 ```bash
-python build_manifest_dual_public.py \
+python build_manifest_dual.py \
   --input companies_80.csv \
   --tickers company_tickers.json \
   --min-date 2023-10-01 \
