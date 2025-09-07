@@ -42,7 +42,7 @@ company_tickers.json
         (upload PDFs to Drive; keep filenames)
                     │
                     ▼
-   Google Sheet + Apps Script
+   Google Sheet + Apps Script (PDF_links.txt)
      └── Fills PDF_link_1 / PDF_link_2
 ```
 
