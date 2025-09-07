@@ -1,0 +1,81 @@
+Company,Ticker,Sector
+Apple,AAPL,Technology
+Microsoft,MSFT,Technology
+Alphabet,GOOGL,Technology
+NVIDIA,NVDA,Technology
+Meta Platforms,META,Technology
+Adobe,ADBE,Technology
+Salesforce,CRM,Technology
+Oracle,ORCL,Technology
+Intel,INTC,Technology
+Cisco Systems,CSCO,Technology
+JPMorgan Chase,JPM,Financials
+Bank of America,BAC,Financials
+Wells Fargo,WFC,Financials
+Citigroup,C,Financials
+Goldman Sachs,GS,Financials
+Morgan Stanley,MS,Financials
+BlackRock,BLK,Financials
+American Express,AXP,Financials
+S&P Global,SPGI,Financials
+Charles Schwab,SCHW,Financials
+Johnson & Johnson,JNJ,Healthcare
+Pfizer,PFE,Healthcare
+Merck,MRK,Healthcare
+AbbVie,ABBV,Healthcare
+Eli Lilly,LLY,Healthcare
+UnitedHealth Group,UNH,Healthcare
+CVS Health,CVS,Healthcare
+Amgen,AMGN,Healthcare
+Gilead Sciences,GILD,Healthcare
+Bristol Myers Squibb,BMY,Healthcare
+ExxonMobil,XOM,Energy
+Chevron,CVX,Energy
+ConocoPhillips,COP,Energy
+Schlumberger,SLB,Energy
+Halliburton,HAL,Energy
+EOG Resources,EOG,Energy
+Phillips 66,PSX,Energy
+Procter & Gamble,PG,Consumer Staples
+Coca-Cola,KO,Consumer Staples
+PepsiCo,PEP,Consumer Staples
+Walmart,WMT,Consumer Staples
+Costco,COST,Consumer Staples
+Mondelez,MDLZ,Consumer Staples
+Colgate-Palmolive,CL,Consumer Staples
+Amazon,AMZN,Consumer Discretionary
+Tesla,TSLA,Consumer Discretionary
+Home Depot,HD,Consumer Discretionary
+Lowe's,LOW,Consumer Discretionary
+Nike,NKE,Consumer Discretionary
+Starbucks,SBUX,Consumer Discretionary
+McDonald's,MCD,Consumer Discretionary
+Booking Holdings,BKNG,Consumer Discretionary
+TJX Companies,TJX,Consumer Discretionary
+Target,TGT,Consumer Discretionary
+Boeing,BA,Industrials
+Caterpillar,CAT,Industrials
+General Electric,GE,Industrials
+3M,MMM,Industrials
+Union Pacific,UNP,Industrials
+Honeywell,HON,Industrials
+Lockheed Martin,LMT,Industrials
+Deere & Company,DE,Industrials
+Raytheon Technologies,RTX,Industrials
+Northrop Grumman,NOC,Industrials
+AT&T,T,Communication Services
+Verizon,VZ,Communication Services
+Comcast,CMCSA,Communication Services
+Walt Disney,DIS,Communication Services
+Netflix,NFLX,Communication Services
+Warner Bros. Discovery,WBD,Communication Services
+Dow,DOW,Materials
+DuPont de Nemours,DD,Materials
+Newmont,NEM,Materials
+Sherwin-Williams,SHW,Materials
+NextEra Energy,NEE,Utilities
+Duke Energy,DUK,Utilities
+Southern Company,SO,Utilities
+Prologis,PLD,Real Estate
+American Tower,AMT,Real Estate
+Simon Property Group,SPG,Real Estate

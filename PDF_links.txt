@@ -1,0 +1,248 @@
+/**
+ * PDF Link Filler for Sheets + Drive
+ * - Matches exact PDF filenames from a Drive folder to rows in the sheet
+ * - Writes links into PDF_link_1 / PDF_link_2
+ * - Optionally writes HYPERLINK() formulas instead of raw URLs
+ * - Normalizes names (trim/lowercase) to avoid minor mismatches
+ * - Highlights missing matches
+ * - Can fill blanks only (safe) or overwrite existing links (force refresh)
+ * - One-click: set all files in folder to "Anyone with link — Viewer"
+ *
+ * Configure these constants:
+ */
+const DRIVE_FOLDER_ID = '1pB0xtk2ANfAJQsjROXWkfO4qXaBj52cE'; 
+const USE_HYPERLINK_FORMULA = true; // set to false to write raw URLs
+
+const COLS = {
+  PDF_FILENAME_1: 'PDF_filename_1',
+  PDF_FILENAME_2: 'PDF_filename_2',
+  PDF_LINK_1:     'PDF_link_1',
+  PDF_LINK_2:     'PDF_link_2',
+};
+
+const COLORS = {
+  MISSING: '#ffe5e5',   // light red highlight for misses
+  CLEAR:   null,        // reset background
+};
+
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('PDF Links')
+    .addItem('Fill Links (only blanks)', 'fillPdfLinksOnlyBlanks')
+    .addItem('Fill Links (overwrite all)', 'fillPdfLinksOverwriteAll')
+    .addSeparator()
+    .addItem('Set Sharing on Folder: Anyone/Viewer', 'setFolderFilesShareAnyoneViewer')
+    .addToUi();
+}
+
+/**
+ * Mode 1: fill only blank link cells (safe, default).
+ */
+function fillPdfLinksOnlyBlanks() {
+  fillPdfLinks_({ overwriteExisting: false });
+}
+
+/**
+ * Mode 2: force overwrite any existing links.
+ */
+function fillPdfLinksOverwriteAll() {
+  fillPdfLinks_({ overwriteExisting: true });
+}
+
+/**
+ * Main link-fill function. Reads filenames from the sheet, matches to Drive,
+ * and writes URL/HYPERLINK to link columns. Highlights missing matches.
+ */
+function fillPdfLinks_({ overwriteExisting }) {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const range = sheet.getDataRange();
+  const values = range.getValues();
+  if (values.length < 2) {
+    toast_('No data rows found.');
+    return;
+  }
+
+  const header = values[0].map(String);
+  ensureColumnsExist_(sheet, header, Object.values(COLS));
+  // refresh header in case we created columns
+  const newRange = sheet.getDataRange();
+  const allValues = newRange.getValues();
+  const allHeader = allValues[0].map(String);
+  const idx = indexMap_(allHeader, [
+    COLS.PDF_FILENAME_1, COLS.PDF_FILENAME_2, COLS.PDF_LINK_1, COLS.PDF_LINK_2,
+  ]);
+
+  // Build filename → DriveFile map (normalized)
+  const { fileMap, dupNames } = buildFilenameMap_(DRIVE_FOLDER_ID);
+
+  const bodyValues = allValues.slice(1);
+  const bodyRange = sheet.getRange(2, 1, bodyValues.length, allHeader.length);
+  const backgrounds = bodyRange.getBackgrounds();
+
+  let updated = 0, missing = 0;
+
+  for (let r = 0; r < bodyValues.length; r++) {
+    const row = bodyValues[r];
+
+    // Clear highlight on link columns each pass
+    for (const colName of [COLS.PDF_LINK_1, COLS.PDF_LINK_2]) {
+      const c = idx[colName];
+      if (c != null) backgrounds[r][c] = COLORS.CLEAR;
+    }
+
+    for (const spec of [
+      { fnCol: COLS.PDF_FILENAME_1, linkCol: COLS.PDF_LINK_1 },
+      { fnCol: COLS.PDF_FILENAME_2, linkCol: COLS.PDF_LINK_2 },
+    ]) {
+      const fnIdx = idx[spec.fnCol];
+      const linkIdx = idx[spec.linkCol];
+      if (fnIdx == null || linkIdx == null) continue;
+
+      const filenameRaw = (row[fnIdx] || '').toString();
+      const filename = normalizeName_(filenameRaw);
+      const existing = (row[linkIdx] || '').toString().trim();
+
+      // Skip if no filename
+      if (!filename) continue;
+
+      // Respect overwrite flag
+      if (existing && !overwriteExisting) continue;
+
+      const file = fileMap.get(filename);
+      if (file) {
+        ensureAnyoneViewer_(file);
+        const url = file.getUrl();
+        row[linkIdx] = USE_HYPERLINK_FORMULA ? `=HYPERLINK("${url}", "PDF")` : url;
+        updated++;
+      } else {
+        backgrounds[r][linkIdx] = COLORS.MISSING;
+        missing++;
+      }
+    }
+
+    bodyValues[r] = row;
+  }
+
+  bodyRange.setValues(bodyValues).setBackgrounds(backgrounds);
+
+  let note = `Updated ${updated} link(s). ${missing} missing filename(s) highlighted.`;
+  if (dupNames.length) {
+    note += ` Duplicates in folder (first few): ${dupNames.slice(0,5).join(', ')}${dupNames.length>5?'…':''}`;
+  }
+  toast_(note);
+}
+
+/**
+ * Idempotently set all files in the folder to Anyone-with-link Viewer.
+ */
+function setFolderFilesShareAnyoneViewer() {
+  const folder = getFolder_(DRIVE_FOLDER_ID);
+  const files = folder.getFiles();
+  let count = 0;
+  while (files.hasNext()) { ensureAnyoneViewer_(files.next()); count++; }
+  toast_(`Updated sharing on ${count} file(s).`);
+}
+
+// --------------- helpers ----------------
+
+function indexMap_(header, names) {
+  const map = {};
+  for (const n of names) {
+    const i = header.indexOf(n);
+    if (i >= 0) map[n] = i;
+  }
+  return map;
+}
+
+// Make sure required columns exist; if missing, append them at the end.
+function ensureColumnsExist_(sheet, header, requiredNames) {
+  const missing = requiredNames.filter(n => header.indexOf(n) === -1);
+  if (!missing.length) return;
+
+  const lastCol = header.length;
+  // Insert missing headers at the end
+  const headerRange = sheet.getRange(1, 1, 1, lastCol);
+  const headerValues = headerRange.getValues();
+  const newHeader = headerValues[0].slice(); // copy
+  newHeader.push(...missing);
+  sheet.getRange(1, 1, 1, newHeader.length).setValues([newHeader]);
+
+  // Extend all data rows with empty cells for new columns
+  const numRows = sheet.getLastRow();
+  if (numRows > 1) {
+    const addCols = missing.length;
+    const blankBlock = Array.from({ length: numRows - 1 }, () => Array(addCols).fill(''));
+    sheet.getRange(2, lastCol + 1, numRows - 1, addCols).setValues(blankBlock);
+  }
+}
+
+function normalizeName_(s) {
+  return (s || '').toString().trim().toLowerCase();
+}
+
+function buildFilenameMap_(folderId) {
+  const folder = getFolder_(folderId);
+  const files = folder.getFiles();
+  const map = new Map(), seen = new Set(), dups = [];
+  while (files.hasNext()) {
+    const f = files.next();
+    const key = normalizeName_(f.getName());
+    if (map.has(key) && !seen.has(key)) { dups.push(f.getName()); seen.add(key); }
+    map.set(key, f);
+  }
+  return { fileMap: map, dupNames: dups };
+}
+
+function ensureAnyoneViewer_(file) {
+  // Safe to call repeatedly; ensures "Anyone with link — Viewer".
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+}
+
+function toast_(msg) {
+  SpreadsheetApp.getActive().toast(msg);
+}
+
+function diagFolder() {
+  const folder = getFolder_(DRIVE_FOLDER_ID);
+  Logger.log('Folder name: %s', folder.getName());
+  const it = folder.getFiles();
+  let n = 0;
+  while (it.hasNext() && n < 5) { const f = it.next(); Logger.log('File: %s', f.getName()); n++; }
+}
+
+function diagAuth() {
+  // Forces Drive scope and proves DriveApp works at all
+  const root = DriveApp.getRootFolder();
+  Logger.log('Root folder: %s', root.getName());
+}
+
+// Accepts a Drive folder URL or bare ID; if it's a *shortcut*, follows it to the real target.
+function resolveFolderId_(input) {
+  if (!input) throw new Error('No folder ID/URL provided.');
+  const s = input.trim();
+
+  // If a full URL was pasted, extract the id after /folders/
+  const m = s.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+  let id = m ? m[1] : s;
+
+  // Try to fetch file metadata to check if it's a shortcut
+  // Requires Advanced Drive service (Resources ▸ Services ▸ Drive v2/Drive API)
+  try {
+    const meta = Drive.Files.get(id); // Advanced Drive API
+    if (meta && meta.mimeType === 'application/vnd.google-apps.shortcut' && meta.shortcutDetails) {
+      id = meta.shortcutDetails.targetId; // follow the shortcut
+    }
+  } catch (e) {
+    // If this fails, id might be bad or you lack access. Let caller see a clearer error.
+    throw new Error('Could not fetch Drive metadata for provided ID. Is it a valid folder or a shortcut you cannot access?\n' + e);
+  }
+
+  return id;
+}
+
+function getFolder_(input) {
+  const realId = resolveFolderId_(input);
+  // Will still throw if you truly lack access to the underlying folder
+  return DriveApp.getFolderById(realId);
+}
+
