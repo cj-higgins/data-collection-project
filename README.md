@@ -22,6 +22,7 @@ The flow is:
 
 ```
 companies_80.csv
+company_tickers.json
       │
       ▼
  build_manifest_dual.py
