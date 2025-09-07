@@ -10,7 +10,7 @@ The flow is:
    Pulls recent SEC filings for a set of companies. Produces `manifest_ab.csv` and `manifest_two.csv`.
 
 2. **Assemble Master Sheet** (`assemble_master.py`):  
-   Merges manifests into `tasks_master.csv` with 120 tasks (40 A, 40 B, 10 C-YoY, 10 C-Peer).  
+   Merges manifests into `tasks_master.csv` with 100 tasks (60 A, 20 B, 10 C-YoY, 10 C-Peer).  
    Fields include company info, filing metadata, two doc slots, and placeholders for PDF filenames, checksums, and links.
 
 3. **Finalize PDFs Offline** (`finalize_pdfs_offline.py`):  
@@ -69,7 +69,7 @@ python assemble_master.py \
   --ab manifest_ab.csv \
   --two manifest_two.csv \
   --out tasks_master.csv \
-  --a-count 40 --b-count 40 --c-yoy-count 10 --c-peer-count 10
+  --a-count 60 --b-count 20 --c-yoy-count 10 --c-peer-count 10
 ```
 
 Outputs: `tasks_master.csv`.
